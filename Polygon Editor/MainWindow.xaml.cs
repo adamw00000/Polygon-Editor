@@ -35,6 +35,7 @@ namespace Polygon_Editor
 
         private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            Title = "DOWN";
             var p = e.GetPosition(this);
 
             if (drawMode)
@@ -50,7 +51,7 @@ namespace Polygon_Editor
 
                 Ellipse dot = CreateDot(p, Constants.PointSize);
                 DrawDot(dot);
-                Vertex v = new Vertex(p, dot);
+                Vertex v = new Vertex(p);
                 polygon.Vertexes.Add(v);
 
                 if (lastVertex != null)
@@ -69,7 +70,7 @@ namespace Polygon_Editor
                     moveMode = true;
                     movedVertex = (Vertex)vertex;
                 }
-                if (polygon.CheckClickTarget(p, out object side) == ClickTarget.Side)
+                else if (polygon.CheckClickTarget(p, out object side) == ClickTarget.Side)
                 {
                     Side clickedSide = (Side)side;
                     polygon.AddVertex(clickedSide);
@@ -82,13 +83,13 @@ namespace Polygon_Editor
         private void DrawSide(Vertex v1, Vertex v2)
         {
             Point p1 = v1.P, p2 = v2.P;
-            Line line = CreateLine(p1, p2);
-            DrawLine(line);
-            Point middle = new Point(p1.X / 2 + p2.X / 2, p1.Y / 2 + p2.Y / 2);
-            Ellipse dot = CreateDot(middle, Constants.MiddlePointSize);
+
+            Side s = new Side(v1, v2);
+            DrawLine(s.Line);
+            Ellipse dot = CreateDot(s.Middle, Constants.MiddlePointSize);
             DrawDot(dot);
 
-            polygon.Sides.Add(new Side(v1, middle, v2, line));
+            polygon.Sides.Add(s);
         }
 
         private void DrawLine(Line line)
@@ -145,8 +146,9 @@ namespace Polygon_Editor
 
         private void Canvas_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
+            Title = "UP";
             var p = e.GetPosition(this);
-
+            
             if (moveMode)
             {
                 moveMode = false;
