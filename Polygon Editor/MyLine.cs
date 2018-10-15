@@ -14,7 +14,17 @@ namespace Polygon_Editor
         public double X2 { get; set; }
         public double Y2 { get; set; }
 
-        public List<Point> Points { get; } = new List<Point>();
+        double lastX1, lastX2, lastY1, lastY2;
+        List<Point> points = new List<Point>();
+
+        public List<Point> Points
+        {
+            get
+            {
+                Bresenham();
+                return points;
+            }
+        }
 
         public MyLine(Point P1, Point P2)
         {
@@ -26,7 +36,10 @@ namespace Polygon_Editor
 
         public void Bresenham()
         {
-            Points.Clear();
+            if (lastX1 == X1 && lastY1 == Y1 && lastX2 == X2 && lastY2 == Y2)
+                return;
+
+            points.Clear();
 
             double tg = (Y2 - Y1) / (X2 - X1);
             if (tg >= -1 && tg <= 1)
@@ -44,6 +57,11 @@ namespace Polygon_Editor
                 else
                     BresenhamHighTg(X2, Y2, X1, Y1);
             }
+
+            lastX1 = X1;
+            lastX2 = X2;
+            lastY1 = Y1;
+            lastY2 = Y2;
         }
 
         private void BresenhamLowTg(double x1, double y1, double x2, double y2)
@@ -66,8 +84,8 @@ namespace Polygon_Editor
             int incrNE = 2 * (dy - dx);
             int d = 2 * dy - dx;
 
-            Points.Add(new Point(xf, yf));
-            Points.Add(new Point(xb, yb));
+            points.Add(new Point(xf, yf));
+            points.Add(new Point(xb, yb));
             while (xf < xb)
             {
                 xf++; xb--;
@@ -79,8 +97,8 @@ namespace Polygon_Editor
                     yf += incrementY;
                     yb -= incrementY;
                 }
-                Points.Add(new Point(xf, yf));
-                Points.Add(new Point(xb, yb));
+                points.Add(new Point(xf, yf));
+                points.Add(new Point(xb, yb));
             }
         }
         private void BresenhamHighTg(double x1, double y1, double x2, double y2)
@@ -103,8 +121,8 @@ namespace Polygon_Editor
             int incrNE = 2 * (dx - dy);
             int d = 2 * dx - dy;
 
-            Points.Add(new Point(xf, yf));
-            Points.Add(new Point(xb, yb));
+            points.Add(new Point(xf, yf));
+            points.Add(new Point(xb, yb));
             while (yf < yb)
             {
                 yf++; yb--;
@@ -116,8 +134,8 @@ namespace Polygon_Editor
                     xf += incrementX;
                     xb -= incrementX;
                 }
-                Points.Add(new Point(xf, yf));
-                Points.Add(new Point(xb, yb));
+                points.Add(new Point(xf, yf));
+                points.Add(new Point(xb, yb));
             }
         }
     }

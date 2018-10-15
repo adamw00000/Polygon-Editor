@@ -76,7 +76,6 @@ namespace Polygon_Editor
                     polygon.AddVertex(clickedSide);
                     DrawPolygon();
                 }
-
             }
         }
 
@@ -97,19 +96,6 @@ namespace Polygon_Editor
             line.Bresenham();
             foreach (var point in line.Points)
                 Canvas.Children.Add(CreateDot(point, 1));
-        }
-
-        private static Line CreateLine(Point p1, Point p2)
-        {
-            return new Line()
-            {
-                Stroke = Brushes.Black,
-                StrokeThickness = 1,
-                X1 = p1.X,
-                Y1 = p1.Y,
-                X2 = p2.X,
-                Y2 = p2.Y
-            };
         }
 
         private void DrawDot(Ellipse dot)
