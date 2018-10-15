@@ -92,9 +92,11 @@ namespace Polygon_Editor
             polygon.Sides.Add(s);
         }
 
-        private void DrawLine(Line line)
+        private void DrawLine(MyLine line)
         {
-            Canvas.Children.Add(line);
+            line.Bresenham();
+            foreach (var point in line.Points)
+                Canvas.Children.Add(CreateDot(point, 1));
         }
 
         private static Line CreateLine(Point p1, Point p2)

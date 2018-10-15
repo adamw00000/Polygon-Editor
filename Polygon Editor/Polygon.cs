@@ -45,20 +45,12 @@ namespace Polygon_Editor
 
     class Side
     {
-        Line line = new Line()
-        {
-            X1 = 0,
-            Y1 = 0,
-            X2 = 0,
-            Y2 = 0,
-            Stroke = Brushes.Black,
-            StrokeThickness = 1
-        };
+        MyLine line;
 
         public Vertex V1 { get; set; }
         public Point Middle => new Point((V1.P.X + V2.P.X) / 2, (V1.P.Y + V2.P.Y) / 2);
         public Vertex V2 { get; set; }
-        public Line Line
+        public MyLine Line
         {
             get
             {
@@ -74,6 +66,7 @@ namespace Polygon_Editor
         {
             this.V1 = V1;
             this.V2 = V2;
+            line = new MyLine(V1.P, V2.P); 
         }
     }
 
