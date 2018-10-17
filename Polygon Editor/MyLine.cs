@@ -98,7 +98,8 @@ namespace Polygon_Editor
                     yb -= incrementY;
                 }
                 points.Add(new Point(xf, yf));
-                points.Add(new Point(xb, yb));
+                if (xf + 1 != xb)
+                    points.Add(new Point(xb, yb));
             }
         }
         private void BresenhamHighTg(double x1, double y1, double x2, double y2)
@@ -135,7 +136,8 @@ namespace Polygon_Editor
                     xb -= incrementX;
                 }
                 points.Add(new Point(xf, yf));
-                points.Add(new Point(xb, yb));
+                if (yf + 1 != yb)
+                    points.Add(new Point(xb, yb));
             }
         }
     }

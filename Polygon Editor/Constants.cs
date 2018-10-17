@@ -11,6 +11,7 @@ namespace Polygon_Editor
     {
         public const int PointSize = 12;
         public const int MiddlePointSize = 6;
+        public const int ClickEps = 5;
         public static BitmapImage NoConstraintImage = 
             new BitmapImage(new Uri("Icons/noconstraint.png", UriKind.Relative));
     }

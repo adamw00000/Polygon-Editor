@@ -5,11 +5,15 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Polygon_Editor"
         mc:Ignorable="d"
-        Title="Polygon Editor" Height="450" Width="800">
-    <Canvas Name="Canvas" 
+        Title="Polygon Editor" Height="450" Width="800"
+        Loaded="Window_Loaded">
+    <StackPanel>
+        <Label>Polygon Editor</Label>
+        <Image Name="Canvas"  Stretch="Fill"
             PreviewMouseLeftButtonDown="Canvas_MouseLeftButtonDown"
             PreviewMouseLeftButtonUp="Canvas_PreviewMouseLeftButtonUp"
             PreviewMouseRightButtonDown="Canvas_PreviewMouseRightButtonDown"
             PreviewMouseMove="Canvas_PreviewMouseMove"
-            Background="White"></Canvas>
+            SizeChanged="Canvas_SizeChanged"/>
+    </StackPanel>
 </Window>
