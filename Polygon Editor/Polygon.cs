@@ -14,70 +14,13 @@ namespace Polygon_Editor
         None, FirstVertex, Vertex, Side
     }
 
-    //class Vertex
-    //{
-    //    Ellipse dot = new Ellipse
-    //    {
-    //        Stroke = new SolidColorBrush(Colors.Black),
-    //        StrokeThickness = 3, 
-    //        Height = Constants.PointSize,
-    //        Width = Constants.PointSize,
-    //        Fill = new SolidColorBrush(Colors.Black),
-    //        Margin = new Thickness(0, 0, 0, 0)
-    //};
-
-    //    public Point P { get; set; }
-    //    public Ellipse Dot
-    //    {
-    //        get
-    //        {
-    //            int size = Constants.PointSize;
-    //            dot.Margin = new Thickness(P.X - size / 2, P.Y - size / 2, 0, 0);
-    //            return dot;
-    //        }
-    //    }
-
-    //    public Vertex(Point P)
-    //    {
-    //        this.P = P;
-    //    }
-    //}
-
-    //class Side
-    //{
-    //    MyLine line;
-
-    //    public Vertex V1 { get; set; }
-    //    public Point Middle => new Point((V1.P.X + V2.P.X) / 2, (V1.P.Y + V2.P.Y) / 2);
-    //    public Vertex V2 { get; set; }
-    //    public MyLine Line
-    //    {
-    //        get
-    //        {
-    //            line.X1 = V1.P.X;
-    //            line.Y1 = V1.P.Y;
-    //            line.X2 = V2.P.X;
-    //            line.Y2 = V2.P.Y;
-    //            return line;
-    //        }
-    //    }
-
-    //    public Side(Vertex V1, Vertex V2)
-    //    {
-    //        this.V1 = V1;
-    //        this.V2 = V2;
-    //        line = new MyLine(V1.P, V2.P); 
-    //    }
-    //}
-
     class Polygon
     {
         public CyclicBidirectionalVerticesList Vertices { get; set; } = new CyclicBidirectionalVerticesList();
 
-        internal void MoveVertex(Vertex movedVertex, Point p)
+        internal void MoveVertex(Vertex v, Point p)
         {
-            movedVertex.X = p.X;
-            movedVertex.Y = p.Y;
+            v.Move(p.X, p.Y);
         }
 
         internal void AddVertex(Vertex v)

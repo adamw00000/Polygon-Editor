@@ -29,10 +29,41 @@ namespace Polygon_Editor
         bool moveMode = false;
         Vertex movedVertex;
 
+        public ICommand horizontalCommand;
+        public ICommand verticalCommand;
+        public ICommand angleCommand;
+        public ICommand removeCommand;
+
         public MainWindow()
         {
             InitializeComponent();
             Canvas.Source = bitmap;
+            horizontalCommand = new RelayCommand<Vertex>(v =>
+            {
+                v.AddSideConstraint(Vertex.SideConstraint.Horizontal);
+                v.EnforceConstraints();
+                DrawPolygon();
+            });
+            verticalCommand = new RelayCommand<Vertex>(v =>
+            {
+                v.AddSideConstraint(Vertex.SideConstraint.Vertical);
+                v.EnforceConstraints();
+                DrawPolygon();
+            });
+            angleCommand = new RelayCommand<List<object>>((param) =>
+            {
+                Vertex v = (Vertex)param[0];
+                double a = (double)param[1];
+                v.AddVertexConstraint(Vertex.VertexConstraint.Angle);
+                v.Angle = a;
+                v.EnforceConstraints();
+                DrawPolygon();
+            });
+            removeCommand = new RelayCommand<Vertex>((v =>
+            {
+                polygon.RemoveVertex(v);
+                DrawPolygon();
+            }));
         }
 
         private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -101,8 +132,43 @@ namespace Polygon_Editor
                 Vertex clickedVertex = polygon.GetClickedVertex(p);
                 if (clickedVertex != null)
                 {
-                    polygon.RemoveVertex(clickedVertex);
-                    DrawPolygon();
+                    ContextMenu menu = new ContextMenu();
+                    menu.Items.Add(new MenuItem()
+                    {
+                        Header = "Remove vertex",
+                        Command = removeCommand,
+                        CommandParameter = clickedVertex
+                    });
+                    menu.Items.Add(new MenuItem()
+                    {
+                        Header = "Add angle constraint",
+                        Command = angleCommand,
+                        CommandParameter = new List<object>() { clickedVertex, clickedVertex.CalculateAngle() }
+                    });
+                    menu.Margin = new Thickness(p.X, p.Y, 0, 0);
+                    menu.IsOpen = true;
+                }
+                else
+                {
+                    Vertex clickedSideFirstVertex = polygon.GetClickedSideFirstVertex(p);
+                    if (clickedSideFirstVertex != null)
+                    {
+                        ContextMenu menu = new ContextMenu();
+                        menu.Items.Add(new MenuItem()
+                        {
+                            Header = "Add horizontal constraint",
+                            Command = horizontalCommand,
+                            CommandParameter = clickedSideFirstVertex
+                        });
+                        menu.Items.Add(new MenuItem()
+                        {
+                            Header = "Add vertical constraint",
+                            Command = verticalCommand,
+                            CommandParameter = clickedSideFirstVertex
+                        });
+                        menu.Margin = new Thickness(p.X, p.Y, 0, 0);
+                        menu.IsOpen = true;
+                    }
                 }
             }
         }
@@ -123,7 +189,10 @@ namespace Polygon_Editor
         {
             bitmap.Clear();
 
-            foreach(Vertex v in polygon.Vertices.Enumerate())
+            //foreach (Vertex v in polygon.Vertices.Enumerate())
+            //    v.EnforceConstraints();
+
+            foreach (Vertex v in polygon.Vertices.Enumerate())
             {
                 DrawDot(new Point(v.X, v.Y), Constants.PointSize);
                 if (polygon.Vertices.Count >= 2)

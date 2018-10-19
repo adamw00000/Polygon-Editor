@@ -64,6 +64,9 @@ namespace Polygon_Editor
             if (prev == tail)
                 tail = v;
 
+            v.Prev?.ClearNextConstaint();
+            v.Next?.ClearPrevConstaint();
+
             Count++;
         }
 
