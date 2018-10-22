@@ -43,6 +43,11 @@ namespace Polygon_Editor
             }
             else
             {
+                v.Prev.NextConstraint = Vertex.SideConstraint.None;
+                v.Next.PrevConstraint = Vertex.SideConstraint.None;
+                v.Prev.Constraint = Vertex.VertexConstraint.None;
+                v.Next.Constraint = Vertex.VertexConstraint.None;
+
                 if (v == head)
                     head = head.Next;
                 if (v == tail)
@@ -64,8 +69,10 @@ namespace Polygon_Editor
             if (prev == tail)
                 tail = v;
 
-            v.Prev?.ClearNextConstaint();
-            v.Next?.ClearPrevConstaint();
+            v.Prev.NextConstraint = Vertex.SideConstraint.None;
+            v.Next.PrevConstraint = Vertex.SideConstraint.None;
+            v.Prev.Constraint = Vertex.VertexConstraint.None;
+            v.Next.Constraint = Vertex.VertexConstraint.None;
 
             Count++;
         }
@@ -86,6 +93,16 @@ namespace Polygon_Editor
             foreach (var v in Enumerate())
             {
                 if (v.ToPoint().DistanceToPoint(p) <= Constants.PointSize + Constants.ClickEps)
+                    return v;
+            }
+            return null;
+        }
+
+        internal Vertex GetVertexAt(Point p)
+        {
+            foreach (var v in Enumerate())
+            {
+                if (v.ToPoint() == p)
                     return v;
             }
             return null;

@@ -33,6 +33,8 @@ namespace Polygon_Editor
         public ICommand verticalCommand;
         public ICommand angleCommand;
         public ICommand removeCommand;
+        public ICommand clearVertexCommand;
+        public ICommand clearSideCommand;
 
         public MainWindow()
         {
@@ -50,12 +52,12 @@ namespace Polygon_Editor
                 v.EnforceConstraints(v, v.Prev);
                 DrawPolygon();
             });
-            angleCommand = new RelayCommand<List<object>>((param) =>
+            angleCommand = new RelayCommand<Vertex>(v =>
             {
-                Vertex v = (Vertex)param[0];
-                double a = (double)param[1];
+                AngleDialog dialog = new AngleDialog();
+                dialog.ShowDialog();
+                v.Angle = dialog.Angle;
                 v.AddVertexConstraint(Vertex.VertexConstraint.Angle);
-                v.Angle = a;
                 v.EnforceConstraints(v, v.Prev);
                 DrawPolygon();
             });
@@ -64,6 +66,14 @@ namespace Polygon_Editor
                 polygon.RemoveVertex(v);
                 DrawPolygon();
             }));
+            clearVertexCommand = new RelayCommand<Vertex>(v =>
+            {
+                v.ClearVertexConstraint();
+            });
+            clearSideCommand = new RelayCommand<Vertex>(v =>
+            {
+                v.ClearSideConstraint();
+            });
         }
 
         private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -139,12 +149,24 @@ namespace Polygon_Editor
                         Command = removeCommand,
                         CommandParameter = clickedVertex
                     });
-                    menu.Items.Add(new MenuItem()
+                    if (clickedVertex.Constraint == Vertex.VertexConstraint.None)
                     {
-                        Header = "Add angle constraint",
-                        Command = angleCommand,
-                        CommandParameter = new List<object>() { clickedVertex, clickedVertex.CalculateAngle() }
-                    });
+                        menu.Items.Add(new MenuItem()
+                        {
+                            Header = "Add angle constraint",
+                            Command = angleCommand,
+                            CommandParameter = clickedVertex
+                        });
+                    }
+                    else
+                    {
+                        menu.Items.Add(new MenuItem()
+                        {
+                            Header = "Clear constraint",
+                            Command = clearVertexCommand,
+                            CommandParameter = clickedVertex
+                        });
+                    }
                     menu.Margin = new Thickness(p.X, p.Y, 0, 0);
                     menu.IsOpen = true;
                 }
@@ -154,18 +176,30 @@ namespace Polygon_Editor
                     if (clickedSideFirstVertex != null)
                     {
                         ContextMenu menu = new ContextMenu();
-                        menu.Items.Add(new MenuItem()
+                        if (clickedSideFirstVertex.NextConstraint == Vertex.SideConstraint.None)
                         {
-                            Header = "Add horizontal constraint",
-                            Command = horizontalCommand,
-                            CommandParameter = clickedSideFirstVertex
-                        });
-                        menu.Items.Add(new MenuItem()
+                            menu.Items.Add(new MenuItem()
+                            {
+                                Header = "Add horizontal constraint",
+                                Command = horizontalCommand,
+                                CommandParameter = clickedSideFirstVertex
+                            });
+                            menu.Items.Add(new MenuItem()
+                            {
+                                Header = "Add vertical constraint",
+                                Command = verticalCommand,
+                                CommandParameter = clickedSideFirstVertex
+                            });
+                        }
+                        else
                         {
-                            Header = "Add vertical constraint",
-                            Command = verticalCommand,
-                            CommandParameter = clickedSideFirstVertex
-                        });
+                            menu.Items.Add(new MenuItem()
+                            {
+                                Header = "Clear constraint",
+                                Command = clearSideCommand,
+                                CommandParameter = clickedSideFirstVertex
+                            });
+                        }
                         menu.Margin = new Thickness(p.X, p.Y, 0, 0);
                         menu.IsOpen = true;
                     }

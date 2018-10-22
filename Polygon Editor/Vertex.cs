@@ -15,8 +15,9 @@ namespace Polygon_Editor
         public SideConstraint NextConstraint { get; set; }
         public SideConstraint PrevConstraint { get; set; }
         public VertexConstraint Constraint { get; set; }
+        public bool IsConstraintSet => !(Constraint == VertexConstraint.None && PrevConstraint == SideConstraint.None && NextConstraint == SideConstraint.None);
+
         double angle;
-        double crossProduct;
         public double Angle
         {
             get
@@ -25,11 +26,13 @@ namespace Polygon_Editor
             }
             set
             {
-                crossProduct = (Prev.X - X) * (Next.Y - Y) - (Next.X - X) * (Prev.Y - Y);
                 angle = value * Math.PI / 180;
             }
         }
-        //bool isConstraintSet = false;
+        public double aPrevConstraint { get; set; }
+        public double aNextConstraint { get; set; }
+        public double aPrev => Prev.X != X ? (Prev.Y - Y) / (Prev.X - X) : double.PositiveInfinity;
+        public double aNext => Next.X != X ? (Next.Y - Y) / (Next.X - X) : double.PositiveInfinity;
 
         public double X { get; private set; }
         public double Y { get; private set; }
@@ -45,15 +48,7 @@ namespace Polygon_Editor
             PrevConstraint = NextConstraint = SideConstraint.None;
             Constraint = VertexConstraint.None;
         }
-
-        public Vertex(double x, double y, Vertex prev = null, Vertex next = null)
-        {
-            X = x;
-            Y = y;
-            Prev = prev;
-            Next = next;
-        }
-
+        
         public Point ToPoint()
         {
             return new Point(X, Y);
@@ -68,7 +63,19 @@ namespace Polygon_Editor
         {
             X = x;
             Y = y;
-            //EnforceConstraints(this.Prev, null);
+            
+            if (Constraint == VertexConstraint.Angle)
+            {
+                CorrectAngleThisVertex();
+            }
+            if (Next.Constraint == VertexConstraint.Angle)
+            {
+                Next.CorrectAngle();
+            }
+            if (Prev.Constraint == VertexConstraint.Angle)
+            {
+                Prev.CorrectAngle();
+            }
         }
 
         public void EnforceConstraints(Vertex startVertex, Vertex endVertex)
@@ -107,94 +114,77 @@ namespace Polygon_Editor
 
             if (Constraint == VertexConstraint.Angle)
             {
-                if ((crossProduct > 0 && Angle < 0) ||
-                    (crossProduct < 0 && Angle > 0))
-                    Angle = -Angle;
-                if (Math.Abs(Angle - CalculateAngle()) > Constants.Eps)
-                {
-                    Point RotatePoint(Point p, double angle, Point center)
-                    {
-                        double s = Math.Sin(angle);
-                        double c = Math.Cos(angle);
-
-                        double cx = center.X;
-                        double cy = center.Y;
-
-                        // translate point back to origin:
-                        p.X -= cx;
-                        p.Y -= cy;
-
-                        // rotate point
-                        double xnew = p.X * c - p.Y * s;
-                        double ynew = p.X * s + p.Y * c;
-
-                        // translate point back:
-                        p.X = xnew + cx;
-                        p.Y = ynew + cy;
-                        return p;
-                    }
-                    //if (PrevConstraint != SideConstraint.None || startVertex == Prev)
-                    //    CorrectAngle(Prev, this, Next);
-                    //else if (Prev.PrevConstraint != SideConstraint.None && Next.NextConstraint != SideConstraint.None && startVertex != this)
-                    //{
-                    //    void CorrentAngleThisPoint()
-                    //    {
-                    //        Vector delta = Point.Subtract(Next.ToPoint(), Prev.ToPoint()) / 2;
-                    //        double tan = Math.Tan(Angle / 2);
-                    //        Vector x = delta / tan;
-                    //        double xProduct = (X - Prev.X) * (Next.Y - Prev.Y) - (Next.X - Prev.X) * (Y - Prev.Y);
-                    //        if (xProduct < 0)
-                    //        {
-                    //            x.X *= -1;
-                    //            x.Y *= -1;
-                    //        }
-                    //        delta.X += -x.Y;
-                    //        delta.Y += x.X;
-
-                    //        X = Prev.X + delta.X;
-                    //        Y = Prev.Y + delta.Y;
-                    //    }
-                    //    CorrentAngleThisPoint();
-                    //}
-                    //else
-                    //{
-                    //    Angle = -Angle;
-                    //    CorrectAngle(Next, this, Prev);
-                    //    Angle = -Angle;
-                    //}
-
-                    ////Vector delta = Point.Subtract(Next.ToPoint(), Prev.ToPoint()) / 2;
-                    ////double tan = Math.Tan(Angle / 2);
-                    ////Vector x = delta / tan;
-                    ////delta.X += -x.Y;
-                    ////delta.Y += x.X;
-                    ////X = Prev.X + delta.X;
-                    ////Y = Prev.Y + delta.Y;
-                }
+                
             }
 
-            //if (Next.Constraint == VertexConstraint.Angle &&
-            //    Math.Abs(Next.CalculateAngle() - Next.Angle) > Constants.Eps)
-            //    Next.EnforceConstraints(this);
-            //if (Prev.Constraint == VertexConstraint.Angle &&
-            //    Math.Abs(Prev.CalculateAngle() - Prev.Angle) > Constants.Eps)
-            //    Prev.EnforceConstraints(this);
             if (this == endVertex)
                 return;
 
             Next.EnforceConstraints(startVertex, endVertex);
         }
 
-        private void CorrectAngle(Vertex prev, Vertex v, Vertex next)
+        public void CorrectAngle()
         {
-            double prevAngle = Math.Atan2(prev.Y - v.Y, prev.X - v.X);
-            double a = angle + prevAngle;
+            if (double.IsPositiveInfinity(aPrevConstraint) && double.IsPositiveInfinity(aNextConstraint))
+            {
+                return;
+            }
+            else if (double.IsPositiveInfinity(aPrevConstraint))
+            {
+                X = Prev.X;
+                Y = aNextConstraint * (X - Next.X) + Next.Y;
+                return;
+            }
+            else if (double.IsPositiveInfinity(aNextConstraint))
+            {
+                X = Next.X;
+                Y = aPrevConstraint * (X - Prev.X) + Prev.Y;
+                return;
+            }
 
-            double distance = v.ToPoint().DistanceToPoint(next.ToPoint());
-            Point deltaPos = new Point(distance * Math.Cos(a),
-                distance * Math.Sin(a));
-            next.Move(v.X + deltaPos.X, v.Y + deltaPos.Y);
-            //next.EnforceConstraints(this);
+            X = (aPrevConstraint * Prev.X - Prev.Y - aNextConstraint * Next.X + Next.Y) / (aPrevConstraint - aNextConstraint);
+            Y = aPrevConstraint * (X - Prev.X) + Prev.Y;
+        }
+
+        public void CorrectAngleThisVertex()
+        {
+            if (double.IsPositiveInfinity(aPrevConstraint) && double.IsPositiveInfinity(Prev.aPrev))
+            {
+            }
+            else if (double.IsPositiveInfinity(aPrevConstraint))
+            {
+                Prev.X = X;
+                Prev.Y = Prev.aPrev * (Prev.X - Prev.Prev.X) + Prev.Prev.Y;
+            }
+            else if (double.IsPositiveInfinity(Prev.aPrev))
+            {
+                Prev.X = Prev.Prev.X;
+                Prev.Y = aPrevConstraint * (Prev.X - X) + Y;
+            }
+            else
+            {
+                Prev.X = (aPrevConstraint * X - Y - Prev.aPrev * Prev.Prev.X + Prev.Prev.Y) / (aPrevConstraint - Prev.aPrev);
+                Prev.Y = aPrevConstraint * (Prev.X - X) + Y;
+            }
+            
+            if (double.IsPositiveInfinity(aNextConstraint) && double.IsPositiveInfinity(Next.aNext))
+            {
+            }
+            else if (double.IsPositiveInfinity(aNextConstraint))
+            {
+                Next.X = X;
+                Next.Y = Next.aNext * (Next.X - Next.Next.X) + Next.Next.Y;
+            }
+            else if (double.IsPositiveInfinity(Next.aNext))
+            {
+                Next.X = Next.Next.X;
+                Next.Y = aNextConstraint * (Next.X - X) + Y;
+            }
+            else
+            {
+                Next.X = (aNextConstraint * X - Y - Next.aNext * Next.Next.X + Next.Next.Y) / (aNextConstraint - Next.aNext);
+                Next.Y = aNextConstraint * (Next.X - X) + Y;
+            }
         }
 
         public double CalculateAngle()
@@ -214,23 +204,51 @@ namespace Polygon_Editor
 
         public void AddSideConstraint(SideConstraint sideConstraint)
         {
+            if (NextConstraint != SideConstraint.None || Constraint != VertexConstraint.None || Next.Constraint != VertexConstraint.None)
+            {
+                MessageBox.Show("Too many constraints");
+                return;
+            }
+
             NextConstraint = sideConstraint;
             Next.PrevConstraint = sideConstraint;
         }
 
         public void AddVertexConstraint(VertexConstraint vertexConstraint)
         {
+            if (NextConstraint != SideConstraint.None || PrevConstraint != SideConstraint.None || 
+                Constraint != VertexConstraint.None || Prev.Constraint != VertexConstraint.None || Next.Constraint != VertexConstraint.None)
+            {
+                MessageBox.Show("Too many constraints");
+                return;
+            }
+
             Constraint = vertexConstraint;
+            SetAngle();
+            aNextConstraint = aNext;
+            aPrevConstraint = aPrev;
         }
 
-        public void ClearNextConstaint()
+        private void SetAngle()
+        {
+            double prevAngle = Math.Atan2(Prev.Y - Y, Prev.X - X);
+            double a = angle + prevAngle;
+
+            double distance = ToPoint().DistanceToPoint(Next.ToPoint());
+            Point deltaPos = new Point(distance * Math.Cos(a), distance * Math.Sin(a));
+            Next.X = X + deltaPos.X;
+            Next.Y = Y + deltaPos.Y;
+        }
+
+        public void ClearVertexConstraint()
+        {
+            Constraint = VertexConstraint.None;
+        }
+
+        public void ClearSideConstraint()
         {
             NextConstraint = SideConstraint.None;
-        }
-
-        public void ClearPrevConstaint()
-        {
-            PrevConstraint = SideConstraint.None;
+            Next.PrevConstraint = SideConstraint.None;
         }
     }
 }

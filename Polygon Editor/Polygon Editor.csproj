@@ -58,11 +58,18 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="AngleDialog.xaml.cs">
+      <DependentUpon>AngleDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="CyclicBidirectionalVerticesList.cs" />
     <Compile Include="RelayCommand.cs" />
     <Compile Include="SideConstraint.cs" />
     <Compile Include="Vertex.cs" />
     <Compile Include="VertexConstraint.cs" />
+    <Page Include="AngleDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
