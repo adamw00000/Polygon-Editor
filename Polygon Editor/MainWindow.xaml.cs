@@ -41,13 +41,13 @@ namespace Polygon_Editor
             horizontalCommand = new RelayCommand<Vertex>(v =>
             {
                 v.AddSideConstraint(Vertex.SideConstraint.Horizontal);
-                v.EnforceConstraints();
+                v.EnforceConstraints(v, v.Prev);
                 DrawPolygon();
             });
             verticalCommand = new RelayCommand<Vertex>(v =>
             {
                 v.AddSideConstraint(Vertex.SideConstraint.Vertical);
-                v.EnforceConstraints();
+                v.EnforceConstraints(v, v.Prev);
                 DrawPolygon();
             });
             angleCommand = new RelayCommand<List<object>>((param) =>
@@ -56,7 +56,7 @@ namespace Polygon_Editor
                 double a = (double)param[1];
                 v.AddVertexConstraint(Vertex.VertexConstraint.Angle);
                 v.Angle = a;
-                v.EnforceConstraints();
+                v.EnforceConstraints(v, v.Prev);
                 DrawPolygon();
             });
             removeCommand = new RelayCommand<Vertex>((v =>

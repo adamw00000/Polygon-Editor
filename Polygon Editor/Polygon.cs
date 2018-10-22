@@ -21,6 +21,7 @@ namespace Polygon_Editor
         internal void MoveVertex(Vertex v, Point p)
         {
             v.Move(p.X, p.Y);
+            v.EnforceConstraints(v, v.Prev);
         }
 
         internal void AddVertex(Vertex v)

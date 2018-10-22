@@ -16,6 +16,7 @@ namespace Polygon_Editor
         public SideConstraint PrevConstraint { get; set; }
         public VertexConstraint Constraint { get; set; }
         double angle;
+        double crossProduct;
         public double Angle
         {
             get
@@ -24,13 +25,14 @@ namespace Polygon_Editor
             }
             set
             {
+                crossProduct = (Prev.X - X) * (Next.Y - Y) - (Next.X - X) * (Prev.Y - Y);
                 angle = value * Math.PI / 180;
             }
         }
         //bool isConstraintSet = false;
 
-        public double X { get; set; }
-        public double Y { get; set; }
+        public double X { get; private set; }
+        public double Y { get; private set; }
         public Vertex Next { get; set; }
         public Vertex Prev { get; set; }
 
@@ -66,10 +68,10 @@ namespace Polygon_Editor
         {
             X = x;
             Y = y;
-            EnforceConstraints();
+            //EnforceConstraints(this.Prev, null);
         }
 
-        public void EnforceConstraints()
+        public void EnforceConstraints(Vertex startVertex, Vertex endVertex)
         {
             switch (NextConstraint)
             {
@@ -105,29 +107,82 @@ namespace Polygon_Editor
 
             if (Constraint == VertexConstraint.Angle)
             {
+                if ((crossProduct > 0 && Angle < 0) ||
+                    (crossProduct < 0 && Angle > 0))
+                    Angle = -Angle;
                 if (Math.Abs(Angle - CalculateAngle()) > Constants.Eps)
                 {
-                    if (PrevConstraint != SideConstraint.None)
-                        CorrectAngle(Prev, this, Next);
-                    else
-                        CorrectAngle(Next, this, Prev);
+                    Point RotatePoint(Point p, double angle, Point center)
+                    {
+                        double s = Math.Sin(angle);
+                        double c = Math.Cos(angle);
 
-                    //Vector delta = Point.Subtract(Next.ToPoint(), Prev.ToPoint()) / 2;
-                    //double tan = Math.Tan(Angle / 2);
-                    //Vector x = delta / tan;
-                    //delta.X += -x.Y;
-                    //delta.Y += x.X;
-                    //X = Prev.X + delta.X;
-                    //Y = Prev.Y + delta.Y;
+                        double cx = center.X;
+                        double cy = center.Y;
+
+                        // translate point back to origin:
+                        p.X -= cx;
+                        p.Y -= cy;
+
+                        // rotate point
+                        double xnew = p.X * c - p.Y * s;
+                        double ynew = p.X * s + p.Y * c;
+
+                        // translate point back:
+                        p.X = xnew + cx;
+                        p.Y = ynew + cy;
+                        return p;
+                    }
+                    //if (PrevConstraint != SideConstraint.None || startVertex == Prev)
+                    //    CorrectAngle(Prev, this, Next);
+                    //else if (Prev.PrevConstraint != SideConstraint.None && Next.NextConstraint != SideConstraint.None && startVertex != this)
+                    //{
+                    //    void CorrentAngleThisPoint()
+                    //    {
+                    //        Vector delta = Point.Subtract(Next.ToPoint(), Prev.ToPoint()) / 2;
+                    //        double tan = Math.Tan(Angle / 2);
+                    //        Vector x = delta / tan;
+                    //        double xProduct = (X - Prev.X) * (Next.Y - Prev.Y) - (Next.X - Prev.X) * (Y - Prev.Y);
+                    //        if (xProduct < 0)
+                    //        {
+                    //            x.X *= -1;
+                    //            x.Y *= -1;
+                    //        }
+                    //        delta.X += -x.Y;
+                    //        delta.Y += x.X;
+
+                    //        X = Prev.X + delta.X;
+                    //        Y = Prev.Y + delta.Y;
+                    //    }
+                    //    CorrentAngleThisPoint();
+                    //}
+                    //else
+                    //{
+                    //    Angle = -Angle;
+                    //    CorrectAngle(Next, this, Prev);
+                    //    Angle = -Angle;
+                    //}
+
+                    ////Vector delta = Point.Subtract(Next.ToPoint(), Prev.ToPoint()) / 2;
+                    ////double tan = Math.Tan(Angle / 2);
+                    ////Vector x = delta / tan;
+                    ////delta.X += -x.Y;
+                    ////delta.Y += x.X;
+                    ////X = Prev.X + delta.X;
+                    ////Y = Prev.Y + delta.Y;
                 }
             }
 
-            if (Next.Constraint == VertexConstraint.Angle && 
-                Math.Abs(Next.CalculateAngle() - Next.Angle) >= Constants.Eps)
-                Next.EnforceConstraints();
-            if (Prev.Constraint == VertexConstraint.Angle &&
-                Math.Abs(Prev.CalculateAngle() - Prev.Angle) >= Constants.Eps)
-                Prev.EnforceConstraints();
+            //if (Next.Constraint == VertexConstraint.Angle &&
+            //    Math.Abs(Next.CalculateAngle() - Next.Angle) > Constants.Eps)
+            //    Next.EnforceConstraints(this);
+            //if (Prev.Constraint == VertexConstraint.Angle &&
+            //    Math.Abs(Prev.CalculateAngle() - Prev.Angle) > Constants.Eps)
+            //    Prev.EnforceConstraints(this);
+            if (this == endVertex)
+                return;
+
+            Next.EnforceConstraints(startVertex, endVertex);
         }
 
         private void CorrectAngle(Vertex prev, Vertex v, Vertex next)
@@ -139,7 +194,7 @@ namespace Polygon_Editor
             Point deltaPos = new Point(distance * Math.Cos(a),
                 distance * Math.Sin(a));
             next.Move(v.X + deltaPos.X, v.Y + deltaPos.Y);
-            next.EnforceConstraints();
+            //next.EnforceConstraints(this);
         }
 
         public double CalculateAngle()
@@ -150,7 +205,8 @@ namespace Polygon_Editor
 
             double a = Math.Acos((P12 * P12 + P13 * P13 - P23 * P23) / (2 * P12 * P13));
 
-            if ((Prev.X - X) * (Next.Y - Y) - (Next.X - X) * (Prev.Y - Y) > 0)
+            double xProduct = (Prev.X - X) * (Next.Y - Y) - (Next.X - X) * (Prev.Y - Y);
+            if (xProduct < 0)
                 a = -a;
 
             return a * 180 / Math.PI;
