@@ -257,6 +257,8 @@ namespace Polygon_Editor
 
             int X = (int)((v1.X + v2.X - source.Width) / 2);
             int Y = (int)((v1.Y + v2.Y - source.Height) / 2);
+            if (X < 0 || Y < 0)
+                return;
             source.CopyPixels(data, stride, 0);
             bitmap.WritePixels(new Int32Rect(X, Y, source.PixelWidth, source.PixelHeight), data, stride, 0);
         }
