@@ -85,7 +85,6 @@ namespace Polygon_Editor
                 yield return v;
                 v = v.Next;
             }
-
         }
 
         internal Vertex GetClickedVertex(Point p)
@@ -98,16 +97,29 @@ namespace Polygon_Editor
             return null;
         }
 
-        internal Vertex GetVertexAt(Point p)
+        internal int GetIndex(Vertex vertex)
         {
+            int i = 0;
             foreach (var v in Enumerate())
             {
-                if (v.ToPoint() == p)
+                if (v == vertex)
+                    return i;
+                i++;
+            }
+            return -1;
+        }
+
+        internal Vertex GetVertexAt(int index)
+        {
+            int i = 0;
+            foreach (var v in Enumerate())
+            {
+                if (i == index)
                     return v;
+                i++;
             }
             return null;
         }
-
         internal Vertex GetClickedSideFirstVertex(Point p)
         {
             foreach (var v in Enumerate())

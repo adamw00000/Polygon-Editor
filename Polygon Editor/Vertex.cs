@@ -7,7 +7,7 @@ using System.Windows;
 
 namespace Polygon_Editor
 {
-    class Vertex
+    class Vertex: ICloneable
     {
         public enum SideConstraint { Horizontal, Vertical, None }
         public enum VertexConstraint { Angle, None }
@@ -123,6 +123,23 @@ namespace Polygon_Editor
             Next.EnforceConstraints(startVertex, endVertex);
         }
 
+        public bool CheckConstraints(Vertex endVertex)
+        {
+            if (NextConstraint == SideConstraint.Vertical)
+                if (X != Next.X)
+                    return false;
+            if (NextConstraint == SideConstraint.Horizontal)
+                if (Y != Next.Y)
+                    return false;
+            if (Constraint == VertexConstraint.Angle)
+                if (Math.Abs(aPrev - aPrevConstraint) > Constants.Eps || Math.Abs(aNext - aNextConstraint) > Constants.Eps)
+                    return false;
+
+            if (this == endVertex) return true;
+
+            return Next.CheckConstraints(endVertex);
+        }
+
         public void CorrectAngle()
         {
             if (double.IsPositiveInfinity(aPrevConstraint) && double.IsPositiveInfinity(aNextConstraint))
@@ -202,31 +219,38 @@ namespace Polygon_Editor
             return a * 180 / Math.PI;
         }
 
-        public void AddSideConstraint(SideConstraint sideConstraint)
+        public bool AddSideConstraint(SideConstraint sideConstraint)
         {
             if (NextConstraint != SideConstraint.None || Constraint != VertexConstraint.None || Next.Constraint != VertexConstraint.None)
             {
-                MessageBox.Show("Too many constraints");
-                return;
+                MessageBox.Show("Constraint already set on this side");
+                return false;
+            }
+            if (Next.NextConstraint == sideConstraint || PrevConstraint == sideConstraint)
+            {
+                MessageBox.Show("Cannot apply the same constraint on neighbouring vertices");
+                return false;
             }
 
             NextConstraint = sideConstraint;
             Next.PrevConstraint = sideConstraint;
+            return true;
         }
 
-        public void AddVertexConstraint(VertexConstraint vertexConstraint)
+        public bool AddVertexConstraint(VertexConstraint vertexConstraint)
         {
             if (NextConstraint != SideConstraint.None || PrevConstraint != SideConstraint.None || 
                 Constraint != VertexConstraint.None || Prev.Constraint != VertexConstraint.None || Next.Constraint != VertexConstraint.None)
             {
-                MessageBox.Show("Too many constraints");
-                return;
+                MessageBox.Show("Constraint already set on one or more of angle's sides");
+                return false;
             }
 
             Constraint = vertexConstraint;
             SetAngle();
             aNextConstraint = aNext;
             aPrevConstraint = aPrev;
+            return true;
         }
 
         private void SetAngle()
@@ -249,6 +273,19 @@ namespace Polygon_Editor
         {
             NextConstraint = SideConstraint.None;
             Next.PrevConstraint = SideConstraint.None;
+        }
+
+        public object Clone()
+        {
+            return new Vertex(new Point(X, Y))
+            {
+                aNextConstraint = aNextConstraint,
+                aPrevConstraint = aPrevConstraint,
+                Angle = Angle,
+                Constraint = Constraint,
+                NextConstraint = NextConstraint,
+                PrevConstraint = PrevConstraint
+            };
         }
     }
 }

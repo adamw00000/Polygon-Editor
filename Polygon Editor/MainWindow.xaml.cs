@@ -36,43 +36,46 @@ namespace Polygon_Editor
         public ICommand clearVertexCommand;
         public ICommand clearSideCommand;
 
+        public int BitmapHeight { get; set; }
+        public int BitmapWidth { get; set; }
+
         public MainWindow()
         {
             InitializeComponent();
             Canvas.Source = bitmap;
             horizontalCommand = new RelayCommand<Vertex>(v =>
             {
-                v.AddSideConstraint(Vertex.SideConstraint.Horizontal);
-                v.EnforceConstraints(v, v.Prev);
+                polygon.AddSideConstraint(v, Vertex.SideConstraint.Horizontal);
                 DrawPolygon();
             });
             verticalCommand = new RelayCommand<Vertex>(v =>
             {
-                v.AddSideConstraint(Vertex.SideConstraint.Vertical);
-                v.EnforceConstraints(v, v.Prev);
+                polygon.AddSideConstraint(v, Vertex.SideConstraint.Vertical);
                 DrawPolygon();
             });
             angleCommand = new RelayCommand<Vertex>(v =>
             {
-                AngleDialog dialog = new AngleDialog();
+                AngleDialog dialog = new AngleDialog() { Angle = v.CalculateAngle() };
                 dialog.ShowDialog();
-                v.Angle = dialog.Angle;
-                v.AddVertexConstraint(Vertex.VertexConstraint.Angle);
-                v.EnforceConstraints(v, v.Prev);
+                if (!dialog.IsSet)
+                    return;
+                polygon.AddAngleConstraint(v, dialog.Angle, Vertex.VertexConstraint.Angle);
                 DrawPolygon();
             });
-            removeCommand = new RelayCommand<Vertex>((v =>
+            removeCommand = new RelayCommand<Vertex>(v =>
             {
                 polygon.RemoveVertex(v);
                 DrawPolygon();
-            }));
+            });
             clearVertexCommand = new RelayCommand<Vertex>(v =>
             {
-                v.ClearVertexConstraint();
+                polygon.ClearVertexConstraint(v);
+                DrawPolygon();
             });
             clearSideCommand = new RelayCommand<Vertex>(v =>
             {
-                v.ClearSideConstraint();
+                polygon.ClearSideConstraint(v);
+                DrawPolygon();
             });
         }
 
@@ -118,19 +121,6 @@ namespace Polygon_Editor
                     }
                 }
             }
-        }
-
-        private void DrawLine(MyLine line)
-        {
-            foreach (var point in line.Points)
-            {
-                bitmap.SetPixel((int)point.X, (int)point.Y, Colors.Black);
-            }
-        }
-
-        private void DrawDot(Point p, int size)
-        {
-            bitmap.DrawEllipse((int)p.X - size / 2, (int)p.Y - size / 2, (int)p.X + size / 2, (int)p.Y + size / 2, Colors.Black);
         }
 
         private void Canvas_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
@@ -223,9 +213,6 @@ namespace Polygon_Editor
         {
             bitmap.Clear();
 
-            //foreach (Vertex v in polygon.Vertices.Enumerate())
-            //    v.EnforceConstraints();
-
             foreach (Vertex v in polygon.Vertices.Enumerate())
             {
                 DrawDot(new Point(v.X, v.Y), Constants.PointSize);
@@ -236,8 +223,42 @@ namespace Polygon_Editor
                     var line = new MyLine(new Point(v.X, v.Y), new Point(v.Next.X, v.Next.Y));
                     line.Bresenham();
                     DrawLine(line);
+                    DrawIcon(v, v.Next);
                 }
             }
+        }
+
+        private void DrawDot(Point p, int size)
+        {
+            bitmap.FillEllipse((int)p.X - size / 2, (int)p.Y - size / 2, (int)p.X + size / 2, (int)p.Y + size / 2, Colors.Black);
+        }
+
+        private void DrawLine(MyLine line)
+        {
+            foreach (var point in line.Points)
+            {
+                bitmap.SetPixel((int)point.X, (int)point.Y, Colors.Black);
+            }
+        }
+
+        private void DrawIcon(Vertex v1, Vertex v2)
+        {
+            BitmapSource source = null;
+            if (v1.NextConstraint == Vertex.SideConstraint.Horizontal)
+                source = Constants.HorizontalImage as BitmapSource;
+            else if (v1.NextConstraint == Vertex.SideConstraint.Vertical)
+                source = Constants.VerticalImage as BitmapSource;
+            else if (v1.Constraint == Vertex.VertexConstraint.Angle || v2.Constraint == Vertex.VertexConstraint.Angle)
+                source = Constants.AngleImage as BitmapSource;
+            else return;
+
+            int stride = source.PixelWidth * (source.Format.BitsPerPixel / 8);
+            byte[] data = new byte[stride * source.PixelHeight];
+
+            int X = (int)((v1.X + v2.X - source.Width) / 2);
+            int Y = (int)((v1.Y + v2.Y - source.Height) / 2);
+            source.CopyPixels(data, stride, 0);
+            bitmap.WritePixels(new Int32Rect(X, Y, source.PixelWidth, source.PixelHeight), data, stride, 0);
         }
 
         private void Canvas_PreviewMouseMove(object sender, MouseEventArgs e)
@@ -246,7 +267,8 @@ namespace Polygon_Editor
 
             if (moveMode)
             {
-                polygon.MoveVertex(movedVertex, p);
+                if (polygon.MoveVertex(movedVertex, p) == false)
+                    moveMode = false;
                 DrawPolygon();
             }
         }
@@ -255,18 +277,33 @@ namespace Polygon_Editor
         {
             UpdateLayout();
 
-            Canvas.Width = SystemParameters.PrimaryScreenWidth;
-            Canvas.Height = SystemParameters.PrimaryScreenHeight;
-
-            bitmap = new WriteableBitmap((int)1, (int)1, 96, 96, PixelFormats.Bgra32, null);
+            bitmap = new WriteableBitmap((int)10, (int)5, 96, 96, PixelFormats.Bgra32, null);
             Canvas.Source = bitmap;
         }
 
         private void Canvas_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            bitmap = bitmap.Resize((int)e.NewSize.Width, (int)e.NewSize.Height,
-                WriteableBitmapExtensions.Interpolation.Bilinear);
+            BitmapWidth = (int)e.NewSize.Width;
+            BitmapHeight = (int)e.NewSize.Height;
+            polygon.SetBounds(BitmapWidth, BitmapHeight);
+
+            bitmap = bitmap.Resize(BitmapWidth, BitmapHeight, WriteableBitmapExtensions.Interpolation.Bilinear);
             Canvas.Source = bitmap;
+        }
+
+        private void NewPolygon_Click(object sender, RoutedEventArgs e)
+        {
+            polygon = new Polygon();
+            polygon.SetBounds(BitmapWidth, BitmapHeight);
+            firstVertex = null;
+            drawMode = true;
+            moveMode = false;
+            DrawPolygon();
+        }
+
+        private void DeletePolygon_Click(object sender, RoutedEventArgs e)
+        {
+            NewPolygon_Click(sender, e);
         }
     }
 }

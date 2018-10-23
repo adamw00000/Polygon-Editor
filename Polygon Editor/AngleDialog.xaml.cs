@@ -20,17 +20,19 @@ namespace Polygon_Editor
     public partial class AngleDialog : Window
     {
         public double Angle { get; set; }
+        public bool IsSet { get; set; }
 
         public AngleDialog()
         {
             InitializeComponent();
+            DataContext = this;
         }
 
         private void Submit_Click(object sender, RoutedEventArgs e)
         {
             if (!String.IsNullOrEmpty(txtAngle.Text))
             {
-                Angle = double.Parse(txtAngle.Text);
+                IsSet = true;
                 this.Close();
             }
             else
@@ -39,6 +41,7 @@ namespace Polygon_Editor
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
+            IsSet = false;
             this.Close();
         }
     }

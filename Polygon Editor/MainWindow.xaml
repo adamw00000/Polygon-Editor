@@ -8,7 +8,11 @@
         Title="Polygon Editor" Height="450" Width="800"
         Loaded="Window_Loaded">
     <StackPanel>
-        <Label>Polygon Editor</Label>
+        <Menu>
+            <MenuItem Header="New polygon" Click="NewPolygon_Click"/>
+            <MenuItem Header="Delete polygon" Click="DeletePolygon_Click"/>
+        </Menu>
+        <!--<Label>Polygon Editor</Label>-->
         <Image Name="Canvas"  Stretch="Fill"
             PreviewMouseLeftButtonDown="Canvas_MouseLeftButtonDown"
             PreviewMouseLeftButtonUp="Canvas_PreviewMouseLeftButtonUp"

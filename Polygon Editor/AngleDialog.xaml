@@ -14,7 +14,7 @@
         <StackPanel Orientation="Horizontal">
                 <Label Width="10"/>
                 <Label Content="Angle:" VerticalAlignment="Center"/>
-                <TextBox Name="txtAngle" Height="30" Width="330"/>
+                <TextBox Name="txtAngle" Height="30" Width="300" Text="{Binding Angle}"/>
         </StackPanel>
         <StackPanel Orientation="Horizontal" Grid.Row="1">
             <Label Width="30"/>
