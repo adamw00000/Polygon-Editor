@@ -1,0 +1,9 @@
+﻿TODO:
+bresenham punkty -> tablica intów, kolory
+minimalne odległości?
+antialiasing
+zaznaczanie krawędzi
+przerywane krawędzie przy rysowaniu
+wiele wielokątów
+length constraint
+REFACTORING WSZĘDZIE
