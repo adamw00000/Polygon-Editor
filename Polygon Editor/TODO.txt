@@ -1,6 +1,7 @@
 ﻿TODO:
 bresenham punkty -> tablica intów, kolory
-minimalne odległości?
+minimalne odległości między wierzchołkami?
+autowykrywanie pionowości/poziomości
 antialiasing
 zaznaczanie krawędzi
 przerywane krawędzie przy rysowaniu

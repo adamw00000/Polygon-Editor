@@ -18,6 +18,6 @@ namespace Polygon_Editor
         public static BitmapImage VerticalImage =
             new BitmapImage(new Uri("Icons/vertical.png", UriKind.Relative));
         public static BitmapImage AngleImage =
-            new BitmapImage(new Uri("Icons/vertical.png", UriKind.Relative));
+            new BitmapImage(new Uri("Icons/angle.png", UriKind.Relative));
     }
 }
