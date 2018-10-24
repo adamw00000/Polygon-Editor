@@ -258,10 +258,16 @@ namespace Polygon_Editor
             double prevAngle = Math.Atan2(Prev.Y - Y, Prev.X - X);
             double a = angle + prevAngle;
 
-            double distance = ToPoint().DistanceToPoint(Next.ToPoint());
-            Point deltaPos = new Point(distance * Math.Cos(a), distance * Math.Sin(a));
-            Next.X = X + deltaPos.X;
-            Next.Y = Y + deltaPos.Y;
+            double aNextGoal = Math.Abs(a - Math.PI/2) <= Constants.Eps || Math.Abs(a + Math.PI / 2) <= Constants.Eps ? double.PositiveInfinity : Math.Tan(a);
+
+            if (double.IsPositiveInfinity(aNextGoal))
+            {
+                Next.X = X;
+                Next.Y = Next.aNext * (Next.X - Next.Next.X) + Next.Next.Y;
+                return;
+            }
+            Next.X = (aNextGoal * X - Y - Next.aNext * Next.Next.X + Next.Next.Y) / (aNextGoal - Next.aNext);
+            Next.Y = aNextGoal * (Next.X - X) + Y;
         }
 
         public void ClearVertexConstraint()
