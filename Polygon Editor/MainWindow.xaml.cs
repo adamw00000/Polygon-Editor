@@ -220,9 +220,8 @@ namespace Polygon_Editor
                 {
                     if (drawMode && v.Next == firstVertex)
                         return;
-                    var line = new MyLine(new Point(v.X, v.Y), new Point(v.Next.X, v.Next.Y));
-                    line.Bresenham();
-                    DrawLine(line);
+                    bitmap.Bresenham(v.X, v.Y, v.Next.X, v.Next.Y);
+                    
                     DrawIcon(v, v.Next);
                 }
             }
@@ -231,14 +230,6 @@ namespace Polygon_Editor
         private void DrawDot(Point p, int size)
         {
             bitmap.FillEllipse((int)p.X - size / 2, (int)p.Y - size / 2, (int)p.X + size / 2, (int)p.Y + size / 2, Colors.Black);
-        }
-
-        private void DrawLine(MyLine line)
-        {
-            foreach (var point in line.Points)
-            {
-                bitmap.SetPixel((int)point.X, (int)point.Y, Colors.Black);
-            }
         }
 
         private void DrawIcon(Vertex v1, Vertex v2)
@@ -254,12 +245,43 @@ namespace Polygon_Editor
 
             int stride = source.PixelWidth * (source.Format.BitsPerPixel / 8);
             byte[] data = new byte[stride * source.PixelHeight];
-
-            int X = (int)((v1.X + v2.X - source.Width) / 2);
-            int Y = (int)((v1.Y + v2.Y - source.Height) / 2);
-            if (X < 0 || Y < 0)
-                return;
+            int X;
+            int Y;
+            if (v1.Constraint == Vertex.VertexConstraint.Angle)
+            {
+                X = (int)((2 * v1.X + v2.X) / 3 - source.Width / 2);
+                Y = (int)((2 * v1.Y + v2.Y) / 3 - source.Height / 2);
+            }
+            else if (v2.Constraint == Vertex.VertexConstraint.Angle)
+            {
+                X = (int)((v1.X + 2 * v2.X) / 3 - source.Width / 2);
+                Y = (int)((v1.Y + 2 * v2.Y) / 3 - source.Height / 2);
+            }
+            else
+            {
+                X = (int)((v1.X + v2.X - source.Width) / 2);
+                Y = (int)((v1.Y + v2.Y - source.Height) / 2);
+            }
+            
             source.CopyPixels(data, stride, 0);
+            
+            if (X < 0)
+            {
+                X = 0;
+            }
+            if (Y < 0)
+            {
+                Y = 0;
+            }
+            if (X > BitmapWidth - source.PixelWidth)
+            {
+                X = BitmapWidth - source.PixelWidth;
+            }
+            if (Y > BitmapHeight - source.PixelHeight)
+            {
+                Y = BitmapHeight - source.PixelHeight;
+            }
+
             bitmap.WritePixels(new Int32Rect(X, Y, source.PixelWidth, source.PixelHeight), data, stride, 0);
         }
 

@@ -1,8 +1,7 @@
 ﻿TODO:
-bresenham punkty -> tablica intów, kolory
 minimalne odległości między wierzchołkami?
-autowykrywanie pionowości/poziomości
 antialiasing
+autowykrywanie pionowości/poziomości
 zaznaczanie krawędzi
 przerywane krawędzie przy rysowaniu
 wiele wielokątów

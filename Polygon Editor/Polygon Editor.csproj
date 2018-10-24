@@ -65,6 +65,7 @@
     <Compile Include="Classes\CyclicBidirectionalVerticesList.cs" />
     <Compile Include="Helper Classes\RelayCommand.cs" />
     <Compile Include="Classes\Vertex.cs" />
+    <Compile Include="Helper Classes\WriteableBitmapExtender.cs" />
     <Page Include="AngleDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -84,7 +85,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\MyLine.cs" />
     <Compile Include="Helper Classes\PointExtender.cs" />
     <Compile Include="Classes\Polygon.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">

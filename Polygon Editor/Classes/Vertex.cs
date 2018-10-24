@@ -260,14 +260,26 @@ namespace Polygon_Editor
 
             double aNextGoal = Math.Abs(a - Math.PI/2) <= Constants.Eps || Math.Abs(a + Math.PI / 2) <= Constants.Eps ? double.PositiveInfinity : Math.Tan(a);
 
+            if (double.IsPositiveInfinity(aNextGoal) || double.IsPositiveInfinity(Next.aNext))
+            {
+            }
             if (double.IsPositiveInfinity(aNextGoal))
             {
                 Next.X = X;
                 Next.Y = Next.aNext * (Next.X - Next.Next.X) + Next.Next.Y;
                 return;
             }
-            Next.X = (aNextGoal * X - Y - Next.aNext * Next.Next.X + Next.Next.Y) / (aNextGoal - Next.aNext);
-            Next.Y = aNextGoal * (Next.X - X) + Y;
+            else if (double.IsPositiveInfinity(Next.aNext))
+            {
+                Next.X = Next.Next.X;
+                Next.Y = aNextGoal * (Next.X - X) + Y;
+                return;
+            }
+            else
+            {
+                Next.X = (aNextGoal * X - Y - Next.aNext * Next.Next.X + Next.Next.Y) / (aNextGoal - Next.aNext);
+                Next.Y = aNextGoal * (Next.X - X) + Y;
+            }
         }
 
         public void ClearVertexConstraint()

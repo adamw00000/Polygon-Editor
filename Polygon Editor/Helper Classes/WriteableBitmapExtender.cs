@@ -3,68 +3,34 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace Polygon_Editor
 {
-    class MyLine
+    public static class WriteableBitmapExtender
     {
-        public double X1 { get; set; }
-        public double Y1 { get; set; }
-        public double X2 { get; set; }
-        public double Y2 { get; set; }
-
-        double lastX1, lastX2, lastY1, lastY2;
-        List<Point> points = new List<Point>();
-
-        public List<Point> Points
+        public static void Bresenham(this WriteableBitmap bitmap, double X1, double Y1, double X2, double Y2)
         {
-            get
-            {
-                Bresenham();
-                return points;
-            }
-        }
-
-        public MyLine(Point P1, Point P2)
-        {
-            X1 = P1.X;
-            Y1 = P1.Y;
-            X2 = P2.X;
-            Y2 = P2.Y;
-        }
-
-        public void Bresenham()
-        {
-            if (lastX1 == X1 && lastY1 == Y1 && lastX2 == X2 && lastY2 == Y2)
-                return;
-
-            points.Clear();
-
             double tg = (Y2 - Y1) / (X2 - X1);
             if (tg >= -1 && tg <= 1)
             {
                 if (X2 > X1)
-                    BresenhamLowTg(X1, Y1, X2, Y2);
+                    BresenhamLowTg(bitmap, X1, Y1, X2, Y2);
                 else
-                    BresenhamLowTg(X2, Y2, X1, Y1);
+                    BresenhamLowTg(bitmap, X2, Y2, X1, Y1);
 
             }
             else
             {
                 if (Y2 > Y1)
-                    BresenhamHighTg(X1, Y1, X2, Y2);
+                    BresenhamHighTg(bitmap, X1, Y1, X2, Y2);
                 else
-                    BresenhamHighTg(X2, Y2, X1, Y1);
+                    BresenhamHighTg(bitmap, X2, Y2, X1, Y1);
             }
-
-            lastX1 = X1;
-            lastX2 = X2;
-            lastY1 = Y1;
-            lastY2 = Y2;
         }
 
-        private void BresenhamLowTg(double x1, double y1, double x2, double y2)
+        private static void BresenhamLowTg(WriteableBitmap bitmap, double x1, double y1, double x2, double y2)
         {
             int dx = (int)(x2 - x1);
             int dy = (int)(y2 - y1);
@@ -84,8 +50,8 @@ namespace Polygon_Editor
             int incrNE = 2 * (dy - dx);
             int d = 2 * dy - dx;
 
-            points.Add(new Point(xf, yf));
-            points.Add(new Point(xb, yb));
+            bitmap.SetPixel(xf, yf, Colors.Black);
+            bitmap.SetPixel(xb, yb, Colors.Black);
             while (xf < xb)
             {
                 xf++; xb--;
@@ -97,12 +63,12 @@ namespace Polygon_Editor
                     yf += incrementY;
                     yb -= incrementY;
                 }
-                points.Add(new Point(xf, yf));
+                bitmap.SetPixel(xf, yf, Colors.Black);
                 if (xf + 1 != xb)
-                    points.Add(new Point(xb, yb));
+                    bitmap.SetPixel(xb, yb, Colors.Black);
             }
         }
-        private void BresenhamHighTg(double x1, double y1, double x2, double y2)
+        private static void BresenhamHighTg(WriteableBitmap bitmap, double x1, double y1, double x2, double y2)
         {
             int dx = (int)(x2 - x1);
             int dy = (int)(y2 - y1);
@@ -122,8 +88,8 @@ namespace Polygon_Editor
             int incrNE = 2 * (dx - dy);
             int d = 2 * dx - dy;
 
-            points.Add(new Point(xf, yf));
-            points.Add(new Point(xb, yb));
+            bitmap.SetPixel(xf, yf, Colors.Black);
+            bitmap.SetPixel(xb, yb, Colors.Black);
             while (yf < yb)
             {
                 yf++; yb--;
@@ -135,9 +101,9 @@ namespace Polygon_Editor
                     xf += incrementX;
                     xb -= incrementX;
                 }
-                points.Add(new Point(xf, yf));
+                bitmap.SetPixel(xf, yf, Colors.Black);
                 if (yf + 1 != yb)
-                    points.Add(new Point(xb, yb));
+                    bitmap.SetPixel(xb, yb, Colors.Black);
             }
         }
     }
