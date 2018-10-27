@@ -3,6 +3,5 @@ minimalne odległości między wierzchołkami?
 antialiasing
 autowykrywanie pionowości/poziomości
 zaznaczanie krawędzi
-przerywane krawędzie przy rysowaniu
 length constraint
 REFACTORING WSZĘDZIE

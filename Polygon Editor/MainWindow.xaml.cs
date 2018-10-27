@@ -248,7 +248,7 @@ namespace Polygon_Editor
         {
             foreach (Vertex v in polygon.Vertices.Enumerate())
             {
-                DrawDot(new Point(v.X, v.Y), Constants.PointSize);
+                DrawDot(new Point(v.X, v.Y), Constants.PointSize, color);
                 if (polygon.Vertices.Count >= 2)
                 {
                     if (drawMode && v.Next == firstVertex)
@@ -263,9 +263,9 @@ namespace Polygon_Editor
             }
         }
 
-        private void DrawDot(Point p, int size)
+        private void DrawDot(Point p, int size, Color color)
         {
-            bitmap.FillEllipse((int)p.X - size / 2, (int)p.Y - size / 2, (int)p.X + size / 2, (int)p.Y + size / 2, Colors.Black);
+            bitmap.FillEllipse((int)p.X - size / 2, (int)p.Y - size / 2, (int)p.X + size / 2, (int)p.Y + size / 2, color);
         }
 
         private void DrawIcon(Vertex v1, Vertex v2)
