@@ -242,7 +242,10 @@ namespace Polygon_Editor
                     {
                         if (drawMode && v.Next == firstVertex)
                             return;
-                        bitmap.Bresenham(v.X, v.Y, v.Next.X, v.Next.Y);
+                        if (moveMode)
+                            bitmap.DrawLine((int)v.X, (int)v.Y, (int)v.Next.X, (int)v.Next.Y, Colors.Black);
+                        else
+                            bitmap.Bresenham(v.X, v.Y, v.Next.X, v.Next.Y, Colors.Black);
                     
                         DrawIcon(v, v.Next);
                     }
@@ -267,25 +270,47 @@ namespace Polygon_Editor
 
             int stride = source.PixelWidth * (source.Format.BitsPerPixel / 8);
             byte[] data = new byte[stride * source.PixelHeight];
+            source.CopyPixels(data, stride, 0);
+
             int X;
             int Y;
             if (v1.Constraint == Vertex.VertexConstraint.Angle)
             {
-                X = (int)((2 * v1.X + v2.X) / 3 - source.Width / 2);
-                Y = (int)((2 * v1.Y + v2.Y) / 3 - source.Height / 2);
+                double d1 = v1.Prev.ToPoint().DistanceToPoint(v1.ToPoint());
+                double d2 = v1.ToPoint().DistanceToPoint(v2.ToPoint());
+                if (d2 < d1)
+                {
+                    X = (int)((2 * v1.X + v2.X) / 3 - source.Width / 2);
+                    Y = (int)((2 * v1.Y + v2.Y) / 3 - source.Height / 2);
+                }
+                else
+                {
+                    var vec = Point.Subtract(v2.ToPoint(), v1.ToPoint()) * 1/3 * d1/d2;
+                    X = (int)(v1.X + vec.X - source.Width / 2);
+                    Y = (int)(v1.Y + vec.Y - source.Height / 2);
+                }
             }
             else if (v2.Constraint == Vertex.VertexConstraint.Angle)
             {
-                X = (int)((v1.X + 2 * v2.X) / 3 - source.Width / 2);
-                Y = (int)((v1.Y + 2 * v2.Y) / 3 - source.Height / 2);
+                double d1 = v1.ToPoint().DistanceToPoint(v2.ToPoint());
+                double d2 = v2.ToPoint().DistanceToPoint(v2.Next.ToPoint());
+                if (d1 < d2)
+                {
+                    X = (int)((v1.X + 2 * v2.X) / 3 - source.Width / 2);
+                    Y = (int)((v1.Y + 2 * v2.Y) / 3 - source.Height / 2);
+                }
+                else
+                {
+                    var vec = Point.Subtract(v1.ToPoint(), v2.ToPoint()) * 1 / 3 * d2 / d1;
+                    X = (int)(v2.X + vec.X - source.Width / 2);
+                    Y = (int)(v2.Y + vec.Y - source.Height / 2);
+                }
             }
             else
             {
                 X = (int)((v1.X + v2.X - source.Width) / 2);
                 Y = (int)((v1.Y + v2.Y - source.Height) / 2);
             }
-            
-            source.CopyPixels(data, stride, 0);
             
             if (X < 0)
             {

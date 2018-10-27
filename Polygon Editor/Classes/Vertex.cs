@@ -251,7 +251,7 @@ namespace Polygon_Editor
             return true;
         }
 
-        public bool AddVertexConstraint(VertexConstraint vertexConstraint)
+        public bool AddAngleConstraint(double angle)
         {
             if (NextConstraint != SideConstraint.None || PrevConstraint != SideConstraint.None || 
                 Constraint != VertexConstraint.None || Prev.Constraint != VertexConstraint.None || Next.Constraint != VertexConstraint.None)
@@ -260,7 +260,8 @@ namespace Polygon_Editor
                 return false;
             }
 
-            Constraint = vertexConstraint;
+            Constraint = VertexConstraint.Angle;
+            Angle = angle;
             SetAngle();
             aNextConstraint = aNext;
             aPrevConstraint = aPrev;

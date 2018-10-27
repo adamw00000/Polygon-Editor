@@ -20,7 +20,6 @@ namespace Polygon_Editor
     {
         [DataMember]
         public CyclicBidirectionalVerticesList Vertices { get; set; } = new CyclicBidirectionalVerticesList();
-        [DataMember]
         public Polygon clone;
         int boundsX;
         int boundsY;
@@ -69,7 +68,7 @@ namespace Polygon_Editor
         {
             if (!vertex.CheckConstraints(vertex.Prev))
             {
-                MessageBox.Show("Cannot apply constraints");
+                MessageBox.Show("Cannot apply constraints (in case of moving might be a result of numerical error)");
                 clone = (Polygon)Clone();
                 return false;
             }
@@ -105,8 +104,7 @@ namespace Polygon_Editor
         public void AddAngleConstraint(Vertex v, double angle, Vertex.VertexConstraint vertexConstraint)
         {
             Vertex vertex = clone.Vertices.GetVertexAt(Vertices.GetIndex(v));
-            vertex.Angle = angle;
-            if (!vertex.AddVertexConstraint(vertexConstraint))
+            if (!vertex.AddAngleConstraint(angle))
                 return;
             vertex.EnforceConstraints(vertex, vertex.Prev);
             
@@ -116,7 +114,7 @@ namespace Polygon_Editor
                 return;
 
             v.Angle = angle;
-            v.AddVertexConstraint(vertexConstraint);
+            v.AddAngleConstraint(angle);
             v.EnforceConstraints(v, v.Prev);
         }
 
@@ -168,6 +166,12 @@ namespace Polygon_Editor
             foreach (var v in Vertices.Enumerate())
                 list.AddVertex((Vertex)v.Clone());
             return new Polygon(false) { Vertices = list };
+        }
+
+        [OnDeserialized]
+        internal void OnDeserializedMethod(StreamingContext context)
+        {
+            clone = (Polygon)Clone();
         }
     }
 }

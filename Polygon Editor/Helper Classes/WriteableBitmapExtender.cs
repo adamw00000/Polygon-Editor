@@ -10,27 +10,27 @@ namespace Polygon_Editor
 {
     public static class WriteableBitmapExtender
     {
-        public static void Bresenham(this WriteableBitmap bitmap, double X1, double Y1, double X2, double Y2)
+        public static void Bresenham(this WriteableBitmap bitmap, double X1, double Y1, double X2, double Y2, Color color)
         {
             double tg = (Y2 - Y1) / (X2 - X1);
             if (tg >= -1 && tg <= 1)
             {
                 if (X2 > X1)
-                    BresenhamLowTg(bitmap, X1, Y1, X2, Y2);
+                    BresenhamLowTg(bitmap, X1, Y1, X2, Y2, color);
                 else
-                    BresenhamLowTg(bitmap, X2, Y2, X1, Y1);
+                    BresenhamLowTg(bitmap, X2, Y2, X1, Y1, color);
 
             }
             else
             {
                 if (Y2 > Y1)
-                    BresenhamHighTg(bitmap, X1, Y1, X2, Y2);
+                    BresenhamHighTg(bitmap, X1, Y1, X2, Y2, color);
                 else
-                    BresenhamHighTg(bitmap, X2, Y2, X1, Y1);
+                    BresenhamHighTg(bitmap, X2, Y2, X1, Y1, color);
             }
         }
 
-        private static void BresenhamLowTg(WriteableBitmap bitmap, double x1, double y1, double x2, double y2)
+        private static void BresenhamLowTg(WriteableBitmap bitmap, double x1, double y1, double x2, double y2, Color color)
         {
             int dx = (int)(x2 - x1);
             int dy = (int)(y2 - y1);
@@ -50,8 +50,8 @@ namespace Polygon_Editor
             int incrNE = 2 * (dy - dx);
             int d = 2 * dy - dx;
 
-            bitmap.SetPixel(xf, yf, Colors.Black);
-            bitmap.SetPixel(xb, yb, Colors.Black);
+            bitmap.SetPixel(xf, yf, color);
+            bitmap.SetPixel(xb, yb, color);
             while (xf < xb)
             {
                 xf++; xb--;
@@ -63,12 +63,12 @@ namespace Polygon_Editor
                     yf += incrementY;
                     yb -= incrementY;
                 }
-                bitmap.SetPixel(xf, yf, Colors.Black);
+                bitmap.SetPixel(xf, yf, color);
                 if (xf + 1 != xb)
-                    bitmap.SetPixel(xb, yb, Colors.Black);
+                    bitmap.SetPixel(xb, yb, color);
             }
         }
-        private static void BresenhamHighTg(WriteableBitmap bitmap, double x1, double y1, double x2, double y2)
+        private static void BresenhamHighTg(WriteableBitmap bitmap, double x1, double y1, double x2, double y2, Color color)
         {
             int dx = (int)(x2 - x1);
             int dy = (int)(y2 - y1);
@@ -88,8 +88,8 @@ namespace Polygon_Editor
             int incrNE = 2 * (dx - dy);
             int d = 2 * dx - dy;
 
-            bitmap.SetPixel(xf, yf, Colors.Black);
-            bitmap.SetPixel(xb, yb, Colors.Black);
+            bitmap.SetPixel(xf, yf, color);
+            bitmap.SetPixel(xb, yb, color);
             while (yf < yb)
             {
                 yf++; yb--;
@@ -101,9 +101,9 @@ namespace Polygon_Editor
                     xf += incrementX;
                     xb -= incrementX;
                 }
-                bitmap.SetPixel(xf, yf, Colors.Black);
+                bitmap.SetPixel(xf, yf, color);
                 if (yf + 1 != yb)
-                    bitmap.SetPixel(xb, yb, Colors.Black);
+                    bitmap.SetPixel(xb, yb, color);
             }
         }
     }

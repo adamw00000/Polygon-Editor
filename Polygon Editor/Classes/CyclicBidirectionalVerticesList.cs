@@ -11,13 +11,10 @@ namespace Polygon_Editor
     [DataContract]
     class CyclicBidirectionalVerticesList
     {
-        //[DataMember]
         Vertex head;
-        //[DataMember]
         Vertex tail;
         [DataMember]
         List<Vertex> vertices;
-        //[DataMember]
         public int Count { get; set; }
 
         public void AddVertex(Vertex v)
@@ -98,7 +95,7 @@ namespace Polygon_Editor
         {
             foreach (var v in Enumerate())
             {
-                if (v.ToPoint().DistanceToPoint(p) <= Constants.PointSize + Constants.ClickEps)
+                if (v.ToPoint().DistanceToPoint(p) <= Constants.PointSize / 2 + Constants.ClickEps)
                     return v;
             }
             return null;
