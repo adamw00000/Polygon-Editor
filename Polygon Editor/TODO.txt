@@ -4,6 +4,5 @@ antialiasing
 autowykrywanie pionowości/poziomości
 zaznaczanie krawędzi
 przerywane krawędzie przy rysowaniu
-wiele wielokątów
 length constraint
 REFACTORING WSZĘDZIE

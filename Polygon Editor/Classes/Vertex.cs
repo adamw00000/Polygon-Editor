@@ -1,23 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
 namespace Polygon_Editor
 {
+    [DataContract]
     class Vertex: ICloneable
     {
         public enum SideConstraint { Horizontal, Vertical, None }
         public enum VertexConstraint { Angle, None }
 
+        [DataMember]
         public SideConstraint NextConstraint { get; set; }
+        [DataMember]
         public SideConstraint PrevConstraint { get; set; }
+        [DataMember]
         public VertexConstraint Constraint { get; set; }
         public bool IsConstraintSet => !(Constraint == VertexConstraint.None && PrevConstraint == SideConstraint.None && NextConstraint == SideConstraint.None);
 
         double angle;
+        [DataMember]
         public double Angle
         {
             get
@@ -29,14 +35,22 @@ namespace Polygon_Editor
                 angle = value * Math.PI / 180;
             }
         }
+#pragma warning disable IDE1006 // Naming Styles
+        [DataMember]
         public double aPrevConstraint { get; set; }
+        [DataMember]
         public double aNextConstraint { get; set; }
         public double aPrev => Prev.X != X ? (Prev.Y - Y) / (Prev.X - X) : double.PositiveInfinity;
         public double aNext => Next.X != X ? (Next.Y - Y) / (Next.X - X) : double.PositiveInfinity;
+#pragma warning restore IDE1006 // Naming Styles
 
+        [DataMember]
         public double X { get; private set; }
+        [DataMember]
         public double Y { get; private set; }
+        //[DataMember]
         public Vertex Next { get; set; }
+        //[DataMember]
         public Vertex Prev { get; set; }
 
         public Vertex(Point p, Vertex prev = null, Vertex next = null)

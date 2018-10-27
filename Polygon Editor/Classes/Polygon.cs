@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -14,9 +15,12 @@ namespace Polygon_Editor
         None, FirstVertex, Vertex, Side
     }
 
+    [DataContract]
     class Polygon: ICloneable
     {
+        [DataMember]
         public CyclicBidirectionalVerticesList Vertices { get; set; } = new CyclicBidirectionalVerticesList();
+        [DataMember]
         public Polygon clone;
         int boundsX;
         int boundsY;

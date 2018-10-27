@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -20,10 +22,13 @@ namespace Polygon_Editor
     /// </summary>
     public partial class MainWindow : Window
     {
-        Polygon polygon = new Polygon();
+        List<Polygon> polygons = new List<Polygon>();
+        //Polygon polygon = new Polygon();
         WriteableBitmap bitmap;
 
         Vertex firstVertex = null;
+        Polygon lastPolygon = null;
+        Polygon currentPolygon = null;
 
         bool drawMode = true;
         bool moveMode = false;
@@ -41,17 +46,20 @@ namespace Polygon_Editor
 
         public MainWindow()
         {
+            lastPolygon = new Polygon();
+            polygons.Add(lastPolygon);
+
             InitializeComponent();
             Canvas.Source = bitmap;
             horizontalCommand = new RelayCommand<Vertex>(v =>
             {
-                polygon.AddSideConstraint(v, Vertex.SideConstraint.Horizontal);
-                DrawPolygon();
+                currentPolygon.AddSideConstraint(v, Vertex.SideConstraint.Horizontal);
+                DrawCanvas();
             });
             verticalCommand = new RelayCommand<Vertex>(v =>
             {
-                polygon.AddSideConstraint(v, Vertex.SideConstraint.Vertical);
-                DrawPolygon();
+                currentPolygon.AddSideConstraint(v, Vertex.SideConstraint.Vertical);
+                DrawCanvas();
             });
             angleCommand = new RelayCommand<Vertex>(v =>
             {
@@ -59,23 +67,23 @@ namespace Polygon_Editor
                 dialog.ShowDialog();
                 if (!dialog.IsSet)
                     return;
-                polygon.AddAngleConstraint(v, dialog.Angle, Vertex.VertexConstraint.Angle);
-                DrawPolygon();
+                currentPolygon.AddAngleConstraint(v, dialog.Angle, Vertex.VertexConstraint.Angle);
+                DrawCanvas();
             });
             removeCommand = new RelayCommand<Vertex>(v =>
             {
-                polygon.RemoveVertex(v);
-                DrawPolygon();
+                currentPolygon.RemoveVertex(v);
+                DrawCanvas();
             });
             clearVertexCommand = new RelayCommand<Vertex>(v =>
             {
-                polygon.ClearVertexConstraint(v);
-                DrawPolygon();
+                currentPolygon.ClearVertexConstraint(v);
+                DrawCanvas();
             });
             clearSideCommand = new RelayCommand<Vertex>(v =>
             {
-                polygon.ClearSideConstraint(v);
-                DrawPolygon();
+                currentPolygon.ClearSideConstraint(v);
+                DrawCanvas();
             });
         }
 
@@ -85,18 +93,21 @@ namespace Polygon_Editor
 
             if (drawMode)
             {
-                Vertex clickedVertex = polygon.GetClickedVertex(p);
-
-                if (clickedVertex != null && polygon.Vertices.Count >= 3 && clickedVertex == firstVertex)
+                foreach(var polygon in polygons)
                 {
-                    drawMode = false;
-                    DrawPolygon();
-                    return;
+                    Vertex clickedVertex = polygon.GetClickedVertex(p);
+
+                    if (clickedVertex != null && polygon.Vertices.Count >= 3 && clickedVertex == firstVertex)
+                    {
+                        drawMode = false;
+                        DrawCanvas();
+                        return;
+                    }
                 }
 
                 Vertex v = new Vertex(p);
-                polygon.AddVertex(v);
-                DrawPolygon();
+                lastPolygon.AddVertex(v);
+                DrawCanvas();
 
                 if (firstVertex == null)
                     firstVertex = v;
@@ -104,20 +115,26 @@ namespace Polygon_Editor
             else
             {
 
-                Vertex clickedVertex = polygon.GetClickedVertex(p);
+                foreach (var polygon in polygons)
+                {
+                    Vertex clickedVertex = polygon.GetClickedVertex(p);
 
-                if (clickedVertex != null)
-                {
-                    moveMode = true;
-                    movedVertex = clickedVertex;
-                }
-                else
-                {
-                    Vertex clickedSideFirstVertex = polygon.GetClickedSideFirstVertex(p);
-                    if (clickedSideFirstVertex != null)
+                    if (clickedVertex != null)
                     {
-                        polygon.AddVertexAfter(clickedSideFirstVertex);
-                        DrawPolygon();
+                        moveMode = true;
+                        movedVertex = clickedVertex;
+                        currentPolygon = polygon;
+                        return;
+                    }
+                    else
+                    {
+                        Vertex clickedSideFirstVertex = polygon.GetClickedSideFirstVertex(p);
+                        if (clickedSideFirstVertex != null)
+                        {
+                            polygon.AddVertexAfter(clickedSideFirstVertex);
+                            DrawCanvas();
+                            return;
+                        }
                     }
                 }
             }
@@ -129,56 +146,26 @@ namespace Polygon_Editor
 
             if (!drawMode)
             {
-                Vertex clickedVertex = polygon.GetClickedVertex(p);
-                if (clickedVertex != null)
+                foreach (var polygon in polygons)
                 {
-                    ContextMenu menu = new ContextMenu();
-                    menu.Items.Add(new MenuItem()
+                    Vertex clickedVertex = polygon.GetClickedVertex(p);
+                    if (clickedVertex != null)
                     {
-                        Header = "Remove vertex",
-                        Command = removeCommand,
-                        CommandParameter = clickedVertex
-                    });
-                    if (clickedVertex.Constraint == Vertex.VertexConstraint.None)
-                    {
-                        menu.Items.Add(new MenuItem()
-                        {
-                            Header = "Add angle constraint",
-                            Command = angleCommand,
-                            CommandParameter = clickedVertex
-                        });
-                    }
-                    else
-                    {
-                        menu.Items.Add(new MenuItem()
-                        {
-                            Header = "Clear constraint",
-                            Command = clearVertexCommand,
-                            CommandParameter = clickedVertex
-                        });
-                    }
-                    menu.Margin = new Thickness(p.X, p.Y, 0, 0);
-                    menu.IsOpen = true;
-                }
-                else
-                {
-                    Vertex clickedSideFirstVertex = polygon.GetClickedSideFirstVertex(p);
-                    if (clickedSideFirstVertex != null)
-                    {
+                        currentPolygon = polygon;
                         ContextMenu menu = new ContextMenu();
-                        if (clickedSideFirstVertex.NextConstraint == Vertex.SideConstraint.None)
+                        menu.Items.Add(new MenuItem()
+                        {
+                            Header = "Remove vertex",
+                            Command = removeCommand,
+                            CommandParameter = clickedVertex
+                        });
+                        if (clickedVertex.Constraint == Vertex.VertexConstraint.None)
                         {
                             menu.Items.Add(new MenuItem()
                             {
-                                Header = "Add horizontal constraint",
-                                Command = horizontalCommand,
-                                CommandParameter = clickedSideFirstVertex
-                            });
-                            menu.Items.Add(new MenuItem()
-                            {
-                                Header = "Add vertical constraint",
-                                Command = verticalCommand,
-                                CommandParameter = clickedSideFirstVertex
+                                Header = "Add angle constraint",
+                                Command = angleCommand,
+                                CommandParameter = clickedVertex
                             });
                         }
                         else
@@ -186,12 +173,47 @@ namespace Polygon_Editor
                             menu.Items.Add(new MenuItem()
                             {
                                 Header = "Clear constraint",
-                                Command = clearSideCommand,
-                                CommandParameter = clickedSideFirstVertex
+                                Command = clearVertexCommand,
+                                CommandParameter = clickedVertex
                             });
                         }
                         menu.Margin = new Thickness(p.X, p.Y, 0, 0);
                         menu.IsOpen = true;
+                    }
+                    else
+                    {
+                        Vertex clickedSideFirstVertex = polygon.GetClickedSideFirstVertex(p);
+                        if (clickedSideFirstVertex != null)
+                        {
+                            currentPolygon = polygon;
+                            ContextMenu menu = new ContextMenu();
+                            if (clickedSideFirstVertex.NextConstraint == Vertex.SideConstraint.None)
+                            {
+                                menu.Items.Add(new MenuItem()
+                                {
+                                    Header = "Add horizontal constraint",
+                                    Command = horizontalCommand,
+                                    CommandParameter = clickedSideFirstVertex
+                                });
+                                menu.Items.Add(new MenuItem()
+                                {
+                                    Header = "Add vertical constraint",
+                                    Command = verticalCommand,
+                                    CommandParameter = clickedSideFirstVertex
+                                });
+                            }
+                            else
+                            {
+                                menu.Items.Add(new MenuItem()
+                                {
+                                    Header = "Clear constraint",
+                                    Command = clearSideCommand,
+                                    CommandParameter = clickedSideFirstVertex
+                                });
+                            }
+                            menu.Margin = new Thickness(p.X, p.Y, 0, 0);
+                            menu.IsOpen = true;
+                        }
                     }
                 }
             }
@@ -204,27 +226,27 @@ namespace Polygon_Editor
             if (moveMode)
             {
                 moveMode = false;
-                polygon.MoveVertex(movedVertex, p);
-                DrawPolygon();
+                currentPolygon.MoveVertex(movedVertex, p);
+                DrawCanvas();
             }
         }
 
-        private void DrawPolygon()
+        private void DrawCanvas()
         {
             bitmap.Clear();
-
-            foreach (Vertex v in polygon.Vertices.Enumerate())
-            {
-                DrawDot(new Point(v.X, v.Y), Constants.PointSize);
-                if (polygon.Vertices.Count >= 2)
+            foreach (var polygon in polygons)
+                foreach (Vertex v in polygon.Vertices.Enumerate())
                 {
-                    if (drawMode && v.Next == firstVertex)
-                        return;
-                    bitmap.Bresenham(v.X, v.Y, v.Next.X, v.Next.Y);
+                    DrawDot(new Point(v.X, v.Y), Constants.PointSize);
+                    if (polygon.Vertices.Count >= 2)
+                    {
+                        if (drawMode && v.Next == firstVertex)
+                            return;
+                        bitmap.Bresenham(v.X, v.Y, v.Next.X, v.Next.Y);
                     
-                    DrawIcon(v, v.Next);
+                        DrawIcon(v, v.Next);
+                    }
                 }
-            }
         }
 
         private void DrawDot(Point p, int size)
@@ -291,9 +313,9 @@ namespace Polygon_Editor
 
             if (moveMode)
             {
-                if (polygon.MoveVertex(movedVertex, p) == false)
+                if (currentPolygon.MoveVertex(movedVertex, p) == false)
                     moveMode = false;
-                DrawPolygon();
+                DrawCanvas();
             }
         }
 
@@ -309,7 +331,9 @@ namespace Polygon_Editor
         {
             BitmapWidth = (int)e.NewSize.Width;
             BitmapHeight = (int)e.NewSize.Height;
-            polygon.SetBounds(BitmapWidth, BitmapHeight);
+
+            foreach(var polygon in polygons)
+                polygon.SetBounds(BitmapWidth, BitmapHeight);
 
             bitmap = bitmap.Resize(BitmapWidth, BitmapHeight, WriteableBitmapExtensions.Interpolation.Bilinear);
             Canvas.Source = bitmap;
@@ -317,17 +341,59 @@ namespace Polygon_Editor
 
         private void NewPolygon_Click(object sender, RoutedEventArgs e)
         {
-            polygon = new Polygon();
-            polygon.SetBounds(BitmapWidth, BitmapHeight);
+            lastPolygon = new Polygon();
+            lastPolygon.SetBounds(BitmapWidth, BitmapHeight);
+            polygons.Add(lastPolygon);
             firstVertex = null;
             drawMode = true;
             moveMode = false;
-            DrawPolygon();
+            DrawCanvas();
         }
 
-        private void DeletePolygon_Click(object sender, RoutedEventArgs e)
+        private void ClearCanvas_Click(object sender, RoutedEventArgs e)
         {
-            NewPolygon_Click(sender, e);
+            polygons.Clear();
+            lastPolygon = new Polygon();
+            lastPolygon.SetBounds(BitmapWidth, BitmapHeight);
+            polygons.Add(lastPolygon);
+            firstVertex = null;
+            drawMode = true;
+            moveMode = false;
+            DrawCanvas();
+        }
+
+        private void SaveCanvas_Click(object sender, RoutedEventArgs e)
+        {
+            if (drawMode)
+            {
+                MessageBox.Show("Cannot save canvas in draw mode!");
+                return;
+            }
+
+            DataContractSerializer serializer = new DataContractSerializer(typeof(List<Polygon>));
+            using (FileStream stream = new FileStream("canvas.xml", FileMode.Create))
+                serializer.WriteObject(stream, polygons);
+
+            MessageBox.Show("Saving successful!");
+        }
+
+        private void LoadCanvas_Click(object sender, RoutedEventArgs e)
+        {
+            if (!File.Exists("canvas.xml"))
+            {
+                MessageBox.Show("canvas.xml doesn't exist!");
+                return;
+            }
+
+            DataContractSerializer serializer = new DataContractSerializer(typeof(List<Polygon>));
+            using (FileStream stream = new FileStream("canvas.xml", FileMode.Open))
+                polygons = serializer.ReadObject(stream) as List<Polygon>;
+
+            drawMode = false;
+            foreach (var polygon in polygons)
+                polygon.SetBounds(BitmapWidth, BitmapHeight);
+            DrawCanvas();
+            MessageBox.Show("Loading successful!");
         }
     }
 }

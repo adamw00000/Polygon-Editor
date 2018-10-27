@@ -5,12 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Polygon_Editor"
         mc:Ignorable="d"
-        Title="Polygon Editor" Height="450" Width="800"
+        Title="Polygon Editor" Height="600" Width="800" WindowStartupLocation="CenterScreen"
         Loaded="Window_Loaded">
     <StackPanel>
         <Menu>
             <MenuItem Header="New polygon" Click="NewPolygon_Click"/>
-            <MenuItem Header="Delete polygon" Click="DeletePolygon_Click"/>
+            <MenuItem Header="Clear canvas" Click="ClearCanvas_Click"/>
+            <MenuItem Header="Save canvas" Click="SaveCanvas_Click"/>
+            <MenuItem Header="Load canvas" Click="LoadCanvas_Click"/>
         </Menu>
         <!--<Label>Polygon Editor</Label>-->
         <Image Name="Canvas"  Stretch="Fill"

@@ -1,16 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
 namespace Polygon_Editor
 {
+    [DataContract]
     class CyclicBidirectionalVerticesList
     {
+        //[DataMember]
         Vertex head;
+        //[DataMember]
         Vertex tail;
+        [DataMember]
+        List<Vertex> vertices;
+        //[DataMember]
         public int Count { get; set; }
 
         public void AddVertex(Vertex v)
@@ -128,6 +135,41 @@ namespace Polygon_Editor
                     return v;
             }
             return null;
+        }
+
+        [OnSerializing]
+        internal void OnSerializingMethod(StreamingContext context)
+        {
+            vertices = new List<Vertex>();
+            foreach (var v in Enumerate())
+                vertices.Add(v);
+        }
+
+        [OnDeserialized]
+        internal void OnDeserializedMethod(StreamingContext context)
+        {
+            Vertex lastVertex = null;
+
+            foreach (var v in vertices)
+            {
+                if (head == null)
+                    head = v;
+                if (lastVertex != null)
+                {
+                    lastVertex.Next = v;
+                    v.Prev = lastVertex;
+                }
+                lastVertex = v;
+                Count++;
+            }
+
+            tail = lastVertex;
+
+            if (head != null)
+            {
+                tail.Next = head;
+                head.Prev = tail;
+            }
         }
     }
 }
