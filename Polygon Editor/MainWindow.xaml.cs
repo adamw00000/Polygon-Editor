@@ -29,6 +29,7 @@ namespace Polygon_Editor
         Vertex firstVertex = null;
         Polygon lastPolygon = null;
         Polygon currentPolygon = null;
+        Polygon currentPolygonShade = null;
 
         bool drawMode = true;
         bool moveMode = false;
@@ -124,6 +125,7 @@ namespace Polygon_Editor
                         moveMode = true;
                         movedVertex = clickedVertex;
                         currentPolygon = polygon;
+                        currentPolygonShade = (Polygon)currentPolygon.Clone();
                         return;
                     }
                     else
@@ -227,6 +229,7 @@ namespace Polygon_Editor
             {
                 moveMode = false;
                 currentPolygon.MoveVertex(movedVertex, p);
+                currentPolygonShade = null;
                 DrawCanvas();
             }
         }
@@ -234,22 +237,30 @@ namespace Polygon_Editor
         private void DrawCanvas()
         {
             bitmap.Clear();
+
+            if (currentPolygonShade != null)
+                DrawPolygon(currentPolygonShade, Colors.LightGray);
             foreach (var polygon in polygons)
-                foreach (Vertex v in polygon.Vertices.Enumerate())
+                DrawPolygon(polygon, Colors.Black);
+        }
+
+        private void DrawPolygon(Polygon polygon, Color color)
+        {
+            foreach (Vertex v in polygon.Vertices.Enumerate())
+            {
+                DrawDot(new Point(v.X, v.Y), Constants.PointSize);
+                if (polygon.Vertices.Count >= 2)
                 {
-                    DrawDot(new Point(v.X, v.Y), Constants.PointSize);
-                    if (polygon.Vertices.Count >= 2)
-                    {
-                        if (drawMode && v.Next == firstVertex)
-                            return;
-                        if (moveMode)
-                            bitmap.DrawLine((int)v.X, (int)v.Y, (int)v.Next.X, (int)v.Next.Y, Colors.Black);
-                        else
-                            bitmap.Bresenham(v.X, v.Y, v.Next.X, v.Next.Y, Colors.Black);
-                    
-                        DrawIcon(v, v.Next);
-                    }
+                    if (drawMode && v.Next == firstVertex)
+                        return;
+                    if (moveMode)
+                        bitmap.DrawLine((int)v.X, (int)v.Y, (int)v.Next.X, (int)v.Next.Y, color);
+                    else
+                        bitmap.Bresenham(v.X, v.Y, v.Next.X, v.Next.Y, color);
+
+                    DrawIcon(v, v.Next);
                 }
+            }
         }
 
         private void DrawDot(Point p, int size)
@@ -339,7 +350,10 @@ namespace Polygon_Editor
             if (moveMode)
             {
                 if (currentPolygon.MoveVertex(movedVertex, p) == false)
+                {
                     moveMode = false;
+                    currentPolygonShade = null;
+                }
                 DrawCanvas();
             }
         }
